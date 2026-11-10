@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+
+repo_dir=$(cd "$(dirname "$0")/.." && pwd)
+build_dir=$(mktemp -d "${TMPDIR:-/tmp}/AppIcon-export.XXXXXX")
+trap 'rm -rf "$build_dir"' EXIT
+
+sdk_path=$(xcrun --sdk macosx --show-sdk-path)
+xcrun --sdk macosx swiftc \
+    -sdk "$sdk_path" \
+    -target "$(uname -m)-apple-ios18.2-macabi" \
+    -F "$sdk_path/System/iOSSupport/System/Library/Frameworks" \
+    "$repo_dir/AppIcon/IconRenderer.swift" \
+    "$repo_dir/AppIcon/IconExporter.swift" \
+    "$repo_dir/Scripts/ExportIcon.swift" \
+    -o "$build_dir/export-icon"
+
+"$build_dir/export-icon" "$@"
